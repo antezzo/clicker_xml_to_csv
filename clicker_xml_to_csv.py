@@ -1,3 +1,9 @@
+# Clicker data XML to CSV converter
+# Matthew Antezzo
+# 10/20/20
+#
+# usage: clicker_xml_to_csv.py -i <input_directory> -o <output_directory>
+
 import os, sys, getopt, csv
 from pathlib import Path
 import clicker_xml_parser
@@ -22,7 +28,6 @@ def main(argv):
     if input_dir == '' or output_dir == '':
         print('usage: clicker_xml_to_csv.py -i <input_directory> -o <output_directory>')
         sys.exit(2)
-    # find a better way to do this
     if input_dir[-1] != '/':
         input_dir += '/'
     if output_dir[-1] != '/':
@@ -44,7 +49,7 @@ if __name__ == "__main__":
 
     p = Path(output_dir)
     p.mkdir(exist_ok=True)
-    
+
     # scans input directory for .xml files and converts their data to two separate .csv files:
     # filename-responses.csv: all responses to every question (with question ids)
     # filename-questions.csv: all questions in the session
@@ -53,9 +58,9 @@ if __name__ == "__main__":
             if entry.name[-4:] == '.xml':
                 responses_input_file = clicker_xml_parser.get_responses(input_dir + entry.name)
                 questions_input_file = clicker_xml_parser.get_questions(input_dir + entry.name)
-                
+
                 responses_output_file = output_dir + entry.name[0:-4] + '-responses.csv'
                 questions_output_file = output_dir + entry.name[0:-4] + '-questions.csv'
-                
+
                 write_vals_to_csv(responses_input_file, responses_output_file)
                 write_vals_to_csv(questions_input_file, questions_output_file)
