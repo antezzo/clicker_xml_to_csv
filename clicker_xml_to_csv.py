@@ -7,7 +7,7 @@
 import os, sys, getopt, csv
 from pathlib import Path
 import clicker_xml_parser
-
+from attr_parser import parse_attr
 # gets arguments from command line and prints usage
 def main(argv):
     input_dir = ''
@@ -35,14 +35,15 @@ def main(argv):
     return input_dir, output_dir
 
 # writes a dictionary value set to .csv
-def write_vals_to_csv(vals, filename):
+def write_vals_to_csv(xml_list, filename):
     with open(filename, 'w', newline='') as csvfile:
-        fieldnames = list(vals[0])
+        fieldnames = list(xml_list[0][0])
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        writer.writeheader()
-        for entry in vals:
-            writer.writerow(entry)
+        #write header
+        writer.writerow(parse_attr(fieldnames))
+        for vals in xml_list: 
+            for entry in vals:
+                writer.writerow(entry)
 
 if __name__ == "__main__":
     input_dir, output_dir = main(sys.argv[1:])
@@ -54,13 +55,14 @@ if __name__ == "__main__":
     # filename-responses.csv: all responses to every question (with question ids)
     # filename-questions.csv: all questions in the session
     with os.scandir(input_dir) as entries:
+        question_objects = []
+        response_objects = []
         for entry in entries:
             if entry.name[-4:] == '.xml':
-                responses_input_file = clicker_xml_parser.get_responses(input_dir + entry.name)
-                questions_input_file = clicker_xml_parser.get_questions(input_dir + entry.name)
-
-                responses_output_file = output_dir + entry.name[0:-4] + '-responses.csv'
-                questions_output_file = output_dir + entry.name[0:-4] + '-questions.csv'
-
-                write_vals_to_csv(responses_input_file, responses_output_file)
-                write_vals_to_csv(questions_input_file, questions_output_file)
+                response_objects.append(clicker_xml_parser.get_responses(input_dir + entry.name))
+                question_objects.append(clicker_xml_parser.get_questions(input_dir + entry.name))            
+        
+        responses_output_file = output_dir + 'responses.csv'
+        questions_output_file = output_dir + 'questions.csv'
+        write_vals_to_csv(response_objects, responses_output_file)
+        write_vals_to_csv(question_objects, questions_output_file)
